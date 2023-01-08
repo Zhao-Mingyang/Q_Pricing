@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
 import numpy as np
+from random import sample
 
 class QNetwork(nn.Module):
     ''' The function approximation network for Estimator
@@ -30,6 +31,7 @@ class QNetwork(nn.Module):
         self.actionvation = nn.Tanh()
         self.fc2 = nn.Linear(layer_dims[1], layer_dims[2], bias=True)
         self.fc3 = nn.Linear(layer_dims[2], self.num_actions, bias=True)
+        self.activation = nn.Softmax(dim=-1)
 
     def forward(self, s):
         ''' Predict action values
@@ -37,14 +39,14 @@ class QNetwork(nn.Module):
         Args:
             s  (Tensor): (batch, state_shape)
         '''
-        print(s.size())
+        # print(s.size())
         x = self.flatten(s)
         x = self.normalisation(x)
         x = self.fc1(x)
         x = self.actionvation(x)
         x= self.fc2(x)
         x = self.actionvation(x)
-        out = self.fc3(x)
+        out = self.activation(self.fc3(x))
         return out
 
 class Memory(object):
@@ -60,7 +62,7 @@ class Memory(object):
         self.batch_size = batch_size
         self.memory = []
 
-    def save(self, state, action, reward):
+    def save(self, state, price, action, reward):
         ''' Save transition into memory
 
         Args:
@@ -73,7 +75,7 @@ class Memory(object):
         '''
         if len(self.memory) == self.memory_size:
             self.memory.pop(0)
-        transition = [state, action, reward]
+        transition = [state, price, action, reward]
         self.memory.append(transition)
 
     def pop_batch(self):
@@ -86,8 +88,9 @@ class Memory(object):
             next_state_batch (list): a batch of states
             done_batch (list): a batch of dones
         '''
-        samples = self.memory[-self.batch_size:]
-        # print(samples)
+        samples = sample(self.memory, self.batch_size)
+        # samples = self.memory[-self.batch_size:]
+        # print(len(samples))
         # self.memory = self.memory
-        print(len(self.memory))
+        # print(len(self.memory))
         return map(np.array, zip(*samples))
