@@ -17,8 +17,8 @@ class QNetwork(nn.Module):
         self.flatten = nn.Flatten()
         self.normalisation = nn.BatchNorm1d(layer_dims[0])
         self.fc1 = nn.Linear(layer_dims[0], layer_dims[1], bias=True)
-        # self.actionvation = nn.ReLU()
-        self.actionvation = nn.Tanh()
+        self.actionvation = nn.ReLU()
+        # self.actionvation = nn.Tanh()
         self.fc2 = nn.Linear(layer_dims[1], layer_dims[2], bias=True)
         self.fc3 = nn.Linear(layer_dims[2], self.num_actions, bias=True)
         self.activation = nn.Softmax(dim=-1)
@@ -49,8 +49,8 @@ class adj_QNetwork(nn.Module):
         self.flatten = nn.Flatten()
         self.normalisation = nn.BatchNorm1d(layer_dims[0])
         self.fc1 = nn.Linear(layer_dims[0], layer_dims[1], bias=True)
-        # self.actionvation = nn.ReLU()
-        self.actionvation = nn.Tanh()
+        self.actionvation = nn.ReLU()
+        # self.actionvation = nn.Tanh()
         self.fc2 = nn.Linear(layer_dims[1], layer_dims[2], bias=True)
         self.fc3 = nn.Linear(layer_dims[2], self.num_actions, bias=True)
         self.activation = nn.Softmax(dim=-1)
@@ -75,6 +75,62 @@ class adj_QNetwork(nn.Module):
         oppo_out = self.activation(self.fc3(oppo_x))
 
         return (out + oppo_out)/2
+
+class Prob_Network(nn.Module):
+    def __init__(self, num_actions=2, state_shape=None, mlp_layers=None):
+
+        super(Prob_Network, self).__init__()
+
+        self.num_actions = num_actions
+        self.state_shape = state_shape
+        self.mlp_layers = mlp_layers
+
+        # build the Q network
+        layer_dims = [np.prod(self.state_shape)] + self.mlp_layers
+        self.flatten = nn.Flatten()
+        self.normalisation = nn.BatchNorm1d(layer_dims[0])
+        self.fc1 = nn.Linear(layer_dims[0], layer_dims[1], bias=True)
+        self.actionvation = nn.ReLU()
+        # self.actionvation = nn.Tanh()
+        self.fc2 = nn.Linear(layer_dims[1], self.num_actions, bias=True)
+        self.activation = nn.Softmax(dim=-1)
+
+    def forward(self, s):
+
+        # print(s.size())
+        x = self.flatten(s)
+        x = self.normalisation(x)
+        x = self.fc1(x)
+        x = self.actionvation(x)
+        prob_out = self.activation(self.fc2(x))
+
+        return prob_out
+
+class Price_Network(nn.Module):
+    def __init__(self, num_actions=2):
+
+        super(Price_Network, self).__init__()
+
+
+        self.num_actions = num_actions
+        self.flatten = nn.Flatten()
+        self.normalisation = nn.BatchNorm1d(num_actions)
+        self.fc2 = nn.Linear(self.num_actions, 128, bias=True)
+        self.fc3 = nn.Linear(128, 1, bias=True)
+        self.actionvation = nn.ReLU()
+        self.price_activation = nn.Hardsigmoid()
+
+    def forward(self, s):
+
+        # print(s.size())
+        x = self.flatten(s)
+        x = self.normalisation(x)
+        x = self.fc2(x)
+        x = self.actionvation(x)
+        p_out = self.fc3(x)
+        p_out = self.price_activation(p_out)
+
+        return p_out
 
 class Memory(object):
     def __init__(self, memory_size, batch_size):
