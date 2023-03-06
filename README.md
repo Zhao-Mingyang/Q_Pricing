@@ -2,7 +2,7 @@
 
 ## Run the code
 
-Please change the `file_path` in both `train.py` and `Policy_train.py`.
+Please change the `file_path` in both `train.py` and `Policy_train.py` for saving the plots and the trained model parameters.
 
 ### Standard Q learning Training:
 ```
