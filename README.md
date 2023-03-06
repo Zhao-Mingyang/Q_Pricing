@@ -2,6 +2,8 @@
 
 ## Run the code
 
+Please change the `file_path` in both `train.py` and `Policy_train.py`.
+
 ### Standard Q learning Training:
 ```
 python train.py 
